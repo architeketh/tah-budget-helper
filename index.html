@@ -1292,14 +1292,13 @@
       const recurringPlanned = recurringItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       const recurringPaid = recurringItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
       const oneTimePaid = oneTimeItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
-      const allItems = [...recurringItems, ...oneTimeItems];
-      const paidCount = allItems.filter((item) => item.paid).length;
+      const paidCount = recurringItems.filter((item) => item.paid).length;
 
       recurringPlannedTotal.textContent = currency(recurringPlanned);
       recurringPaidTotal.textContent = currency(recurringPaid);
       stickyPaid.textContent = currency(recurringPaid);
       stickyOneTimePaid.textContent = currency(oneTimePaid);
-      stickyCount.textContent = `${paidCount} item${paidCount === 1 ? "" : "s"} marked paid`;
+      stickyCount.textContent = `${paidCount} recurring item${paidCount === 1 ? "" : "s"} marked paid`;
     }
 
     function startNextMonth() {
