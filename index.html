@@ -41,7 +41,7 @@
     .shell {
       width: min(1120px, calc(100% - 24px));
       margin: 0 auto;
-      padding: 20px 0 112px;
+      padding: 20px 0 168px;
     }
 
     .hero {
@@ -549,6 +549,10 @@
       font-weight: 600;
     }
 
+    .sync-status.error {
+      color: var(--danger);
+    }
+
     .status-note strong {
       color: var(--accent-strong);
     }
@@ -577,7 +581,7 @@
 
       .shell {
         width: min(100% - 16px, 100%);
-        padding-bottom: 132px;
+        padding-bottom: 176px;
       }
 
       .hero,
@@ -959,10 +963,6 @@
             <div class="sync-status" id="syncStatus"></div>
           </div>
           <div class="helper-card">
-            <h3>Why this setup is the simplest fit</h3>
-            <p>A single `index.html` still works well on GitHub Pages, stays easy to update, and now autosaves to Supabase for cross-device syncing. The backup button is still there if you want an offline copy.</p>
-          </div>
-          <div class="helper-card">
             <h3>Monthly reset made easy</h3>
             <p>Use <strong>Start Next Month</strong> to carry recurring bills forward with paid boxes cleared. One-time items stay behind unless you choose to copy everything.</p>
           </div>
@@ -1145,9 +1145,9 @@
       localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify(syncSettings));
       syncReady = false;
       if (syncSettings.syncCode) {
-        syncStatus.textContent = "Settings saved. Click Connect Sync to start cloud sync.";
+        setSyncStatus("Settings saved. Click Cloud Sync to start cloud sync.");
       } else {
-        syncStatus.textContent = "Enter a sync code, then connect sync.";
+        setSyncStatus("Enter a sync code, then connect sync.", true);
       }
     }
 
@@ -1174,7 +1174,7 @@
       budgetIdInput.value = syncSettings.budgetId || "tah-shared-budget";
       syncCodeInput.value = syncSettings.syncCode || "";
       if (!syncSettings.syncCode) {
-        syncStatus.textContent = "Enter a sync code, then connect sync.";
+        setSyncStatus("Enter a sync code, then connect sync.", true);
       }
     }
 
@@ -1490,30 +1490,30 @@
     async function connectSync() {
       persistSyncSettings();
       if (!syncSettings.budgetId || !syncSettings.syncCode) {
-        syncStatus.textContent = "Enter both a budget ID and sync code.";
+        setSyncStatus("Enter both a budget ID and sync code.", true);
         syncReady = false;
         return;
       }
 
-      syncStatus.textContent = "Connecting to Supabase...";
+      setSyncStatus("Connecting to Supabase...");
       const loaded = await loadBudgetFromSupabase();
       syncReady = true;
       if (loaded) {
-        syncStatus.textContent = "Cloud sync connected. Latest budget loaded.";
+        setSyncStatus("Cloud sync connected. Latest budget loaded.");
       } else {
-        syncStatus.textContent = "Cloud sync connected. A new shared budget will be created on the next change.";
+        setSyncStatus("Cloud sync connected. A new shared budget will be created on the next change.");
       }
     }
 
     async function refreshFromCloud() {
       persistSyncSettings();
       if (!syncSettings.budgetId || !syncSettings.syncCode) {
-        syncStatus.textContent = "Enter both a budget ID and sync code.";
+        setSyncStatus("Enter both a budget ID and sync code.", true);
         return;
       }
-      syncStatus.textContent = "Refreshing from cloud...";
+      setSyncStatus("Refreshing from cloud...");
       const loaded = await loadBudgetFromSupabase();
-      syncStatus.textContent = loaded ? "Budget refreshed from cloud." : "No cloud budget found yet for that budget ID.";
+      setSyncStatus(loaded ? "Budget refreshed from cloud." : "No cloud budget found yet for that budget ID.", !loaded);
     }
 
     async function loadBudgetFromSupabase() {
@@ -1541,7 +1541,7 @@
         render();
         return true;
       } catch (error) {
-        syncStatus.textContent = "Could not connect to Supabase. Finish the SQL setup first.";
+        setSyncStatus("Could not connect to Supabase. Finish the SQL setup first.", true);
         syncReady = false;
         return false;
       }
@@ -1571,10 +1571,15 @@
         }
 
         const stamp = new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
-        syncStatus.textContent = "Autosaved to cloud at " + stamp;
+        setSyncStatus("Autosaved to cloud at " + stamp);
       } catch (error) {
-        syncStatus.textContent = "Cloud save failed. Check your sync code or Supabase setup.";
+        setSyncStatus("Cloud save failed. Check your sync code or Supabase setup.", true);
       }
+    }
+
+    function setSyncStatus(message, isError = false) {
+      syncStatus.textContent = message;
+      syncStatus.classList.toggle("error", isError);
     }
 
     function printRecurringSummary() {
