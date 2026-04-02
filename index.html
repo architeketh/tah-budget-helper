@@ -1158,7 +1158,7 @@
             <div class="expense-summary-name">${escapeHtml(item.name || "Untitled expense")}</div>
             <div class="expense-summary-amount">${currency(Number(item.amount || 0))}</div>
             <div class="expense-summary-meta">
-              <span class="summary-chip ${item.paid ? "paid" : "unpaid"}">${item.paid ? "Paid" : "Unpaid"}</span>
+              <span class="summary-chip status-pill ${item.paid ? "paid" : "unpaid"}">${item.paid ? "Paid" : "Unpaid"}</span>
               <span class="summary-chip">${item.dueDate ? formatShortDate(item.dueDate) : "No date"}</span>
               <span class="summary-chip">Tap to edit</span>
             </div>
@@ -1230,6 +1230,12 @@
           const dateInput = row.querySelector('input[data-field="dueDate"]');
           if (dateInput && item.dueDate) {
             dateInput.value = item.dueDate;
+          }
+          const statusPill = row.querySelector(".status-pill");
+          if (statusPill) {
+            statusPill.textContent = item.paid ? "Paid" : "Unpaid";
+            statusPill.classList.toggle("paid", item.paid);
+            statusPill.classList.toggle("unpaid", !item.paid);
           }
         }
       }
