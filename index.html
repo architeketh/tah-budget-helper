@@ -779,6 +779,7 @@
           <div class="row" style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
             <button id="nextMonthBtn" type="button">Start Next Month</button>
             <button id="newMonthBtn" class="secondary" type="button">Add Blank Month</button>
+            <button id="printSummaryBtn" class="secondary" type="button">Print Summary</button>
           </div>
         </div>
       </div>
@@ -1023,6 +1024,7 @@
     document.getElementById("clearPaidBtn").addEventListener("click", clearPaidChecks);
     document.getElementById("connectSyncBtn").addEventListener("click", connectSync);
     document.getElementById("refreshSyncBtn").addEventListener("click", refreshFromCloud);
+    document.getElementById("printSummaryBtn").addEventListener("click", printRecurringSummary);
     monthSelect.addEventListener("change", (event) => {
       state.currentMonthId = event.target.value;
       persist();
@@ -1543,6 +1545,124 @@
       }
     }
 
+    function printRecurringSummary() {
+      const month = currentMonth();
+      const recurringItems = [...month.recurring].sort((a, b) => {
+        const aDate = a.dueDate || "9999-12-31";
+        const bDate = b.dueDate || "9999-12-31";
+        return aDate.localeCompare(bDate) || String(a.name || "").localeCompare(String(b.name || ""));
+      });
+      const paidItems = recurringItems.filter((item) => item.paid);
+      const unpaidItems = recurringItems.filter((item) => !item.paid);
+      const totalRecurring = recurringItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const totalPaid = paidItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const totalUnpaid = totalRecurring - totalPaid;
+      const printedOn = new Date().toLocaleDateString([], { year: "numeric", month: "long", day: "numeric" });
+
+      const printWindow = window.open("", "_blank", "width=960,height=900");
+      if (!printWindow) {
+        alert("Please allow pop-ups to print the summary.");
+        return;
+      }
+
+      printWindow.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${escapeHtml(month.name)} Recurring Summary</title>
+  <style>
+    body { font-family: "Segoe UI", "Trebuchet MS", sans-serif; margin: 0; color: #1f2a24; background: #fffdf9; }
+    .page { max-width: 960px; margin: 0 auto; padding: 28px 32px 36px; }
+    .header { display: flex; justify-content: space-between; align-items: end; gap: 16px; border-bottom: 2px solid #d8d0c4; padding-bottom: 14px; margin-bottom: 18px; }
+    h1, h2, p { margin: 0; }
+    .eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #5f6d65; margin-bottom: 8px; font-weight: 700; }
+    .totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .card { border: 1px solid #ddd5ca; border-radius: 16px; padding: 14px 16px; background: #fff; }
+    .card small { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #5f6d65; margin-bottom: 8px; font-weight: 700; }
+    .card strong { font-size: 28px; }
+    .section { margin-top: 18px; }
+    .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .section-head h2 { font-size: 20px; }
+    .section-head span { color: #5f6d65; font-size: 14px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e7e0d5; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #5f6d65; }
+    td.amount { text-align: right; font-variant-numeric: tabular-nums; }
+    .muted { color: #768279; }
+    .empty { padding: 16px 8px; color: #768279; font-style: italic; }
+    .notes { margin-top: 24px; }
+    .notes h2 { font-size: 18px; margin-bottom: 10px; }
+    .notes-lines { border: 1px solid #ddd5ca; border-radius: 16px; padding: 10px 0; background: #fff; }
+    .notes-line { height: 28px; border-bottom: 1px solid #ece5da; }
+    .notes-line:last-child { border-bottom: 0; }
+    @media print { body { background: white; } .page { padding: 18px 20px 20px; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div>
+        <div class="eyebrow">Recurring Monthly Summary</div>
+        <h1>${escapeHtml(month.name)}</h1>
+      </div>
+      <p class="muted">Printed on ${escapeHtml(printedOn)}</p>
+    </div>
+    <div class="totals">
+      <div class="card"><small>Total Recurring</small><strong>${currency(totalRecurring)}</strong></div>
+      <div class="card"><small>Recurring Paid</small><strong>${currency(totalPaid)}</strong></div>
+      <div class="card"><small>Recurring Unpaid</small><strong>${currency(totalUnpaid)}</strong></div>
+    </div>
+    ${renderPrintSection("Paid Recurring Items", paidItems)}
+    ${renderPrintSection("Unpaid Recurring Items", unpaidItems)}
+    <section class="notes">
+      <h2>Notes</h2>
+      <div class="notes-lines">
+        <div class="notes-line"></div>
+        <div class="notes-line"></div>
+        <div class="notes-line"></div>
+        <div class="notes-line"></div>
+        <div class="notes-line"></div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>`);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => printWindow.print(), 250);
+    }
+
+    function renderPrintSection(title, items) {
+      return `
+        <section class="section">
+          <div class="section-head">
+            <h2>${escapeHtml(title)}</h2>
+            <span>${items.length} item${items.length === 1 ? "" : "s"}</span>
+          </div>
+          ${items.length ? `
+            <table>
+              <thead>
+                <tr>
+                  <th>Expense</th>
+                  <th>Due Date</th>
+                  <th style="text-align:right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.map((item) => `
+                  <tr>
+                    <td>${escapeHtml(item.name || "")}</td>
+                    <td>${escapeHtml(item.dueDate ? formatPrintDate(item.dueDate) : "-")}</td>
+                    <td class="amount">${currency(Number(item.amount || 0))}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          ` : `<div class="empty">No items in this section.</div>`}
+        </section>
+      `;
+    }
+
     function currency(value) {
       return new Intl.NumberFormat([], {
         style: "currency",
@@ -1565,6 +1685,15 @@
       const [year, month, day] = value.split("-").map(Number);
       const date = new Date(year, (month || 1) - 1, day || 1);
       return date.toLocaleDateString([], { month: "short", day: "numeric" });
+    }
+
+    function formatPrintDate(value) {
+      if (!value) {
+        return "";
+      }
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(year, (month || 1) - 1, day || 1);
+      return date.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
     }
 
     function expenseGroupClass(type, name) {
