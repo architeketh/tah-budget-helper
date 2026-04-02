@@ -244,7 +244,7 @@
     }
 
     .summary {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       margin: 18px 0;
     }
 
@@ -835,19 +835,24 @@
 
       <div class="summary">
         <div class="summary-card">
-          <small>Total planned</small>
-          <strong id="plannedTotal">$0.00</strong>
-          <span>All recurring and one-time items this month</span>
+          <small>Recurring Planned</small>
+          <strong id="recurringPlannedTotal">$0.00</strong>
+          <span>Monthly bills and regular expenses</span>
         </div>
         <div class="summary-card">
-          <small>Total paid</small>
-          <strong id="paidTotal">$0.00</strong>
-          <span>Updates instantly as you check items off</span>
+          <small>Recurring Paid</small>
+          <strong id="recurringPaidTotal">$0.00</strong>
+          <span>Recurring bills already marked paid</span>
         </div>
         <div class="summary-card">
-          <small>Left to pay</small>
-          <strong id="remainingTotal">$0.00</strong>
-          <span>What still remains this month</span>
+          <small>One-Time Planned</small>
+          <strong id="oneTimePlannedTotal">$0.00</strong>
+          <span>Extra charges for this month only</span>
+        </div>
+        <div class="summary-card">
+          <small>One-Time Paid</small>
+          <strong id="oneTimePaidTotal">$0.00</strong>
+          <span>One-time payments already marked paid</span>
         </div>
       </div>
     </section>
@@ -992,9 +997,10 @@
     const newMonthTemplate = document.getElementById("newMonthTemplate");
     const recurringList = document.getElementById("recurringList");
     const oneTimeList = document.getElementById("oneTimeList");
-    const plannedTotal = document.getElementById("plannedTotal");
-    const paidTotal = document.getElementById("paidTotal");
-    const remainingTotal = document.getElementById("remainingTotal");
+    const recurringPlannedTotal = document.getElementById("recurringPlannedTotal");
+    const recurringPaidTotal = document.getElementById("recurringPaidTotal");
+    const oneTimePlannedTotal = document.getElementById("oneTimePlannedTotal");
+    const oneTimePaidTotal = document.getElementById("oneTimePaidTotal");
     const stickyPaid = document.getElementById("stickyPaid");
     const stickyCount = document.getElementById("stickyCount");
     const saveStatus = document.getElementById("saveStatus");
@@ -1279,16 +1285,21 @@
     }
 
     function renderTotals() {
-      const items = [...currentMonth().recurring, ...currentMonth().oneTime];
-      const planned = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-      const paid = items.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
-      const remaining = planned - paid;
-      const paidCount = items.filter((item) => item.paid).length;
+      const recurringItems = currentMonth().recurring;
+      const oneTimeItems = currentMonth().oneTime;
+      const recurringPlanned = recurringItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const recurringPaid = recurringItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
+      const oneTimePlanned = oneTimeItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const oneTimePaid = oneTimeItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
+      const allItems = [...recurringItems, ...oneTimeItems];
+      const overallPaid = recurringPaid + oneTimePaid;
+      const paidCount = allItems.filter((item) => item.paid).length;
 
-      plannedTotal.textContent = currency(planned);
-      paidTotal.textContent = currency(paid);
-      remainingTotal.textContent = currency(remaining);
-      stickyPaid.textContent = currency(paid);
+      recurringPlannedTotal.textContent = currency(recurringPlanned);
+      recurringPaidTotal.textContent = currency(recurringPaid);
+      oneTimePlannedTotal.textContent = currency(oneTimePlanned);
+      oneTimePaidTotal.textContent = currency(oneTimePaid);
+      stickyPaid.textContent = currency(overallPaid);
       stickyCount.textContent = `${paidCount} item${paidCount === 1 ? "" : "s"} marked paid`;
     }
 
