@@ -747,6 +747,15 @@
         font-size: 0.68rem;
       }
 
+      .sticky-total small[data-mobile-label] {
+        font-size: 0;
+      }
+
+      .sticky-total small[data-mobile-label]::after {
+        content: attr(data-mobile-label);
+        font-size: 0.68rem;
+      }
+
       .sticky-total #stickyPaid {
         font-size: 1.25rem;
       }
@@ -931,11 +940,11 @@
 
   <div class="sticky-total">
     <div>
-      <small>Running Amount Paid</small>
+      <small data-mobile-label="Recurring Paid">Recurring Amount Paid</small>
       <div id="stickyPaid">$0.00</div>
     </div>
     <div>
-      <small>One-Time Paid</small>
+      <small data-mobile-label="One-Time Paid">One-Time Amount Paid</small>
       <div id="stickyOneTimePaid">$0.00</div>
     </div>
     <div class="compact" id="stickyCount">0 items marked paid</div>
@@ -1284,12 +1293,11 @@
       const recurringPaid = recurringItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
       const oneTimePaid = oneTimeItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
       const allItems = [...recurringItems, ...oneTimeItems];
-      const overallPaid = recurringPaid + oneTimePaid;
       const paidCount = allItems.filter((item) => item.paid).length;
 
       recurringPlannedTotal.textContent = currency(recurringPlanned);
       recurringPaidTotal.textContent = currency(recurringPaid);
-      stickyPaid.textContent = currency(overallPaid);
+      stickyPaid.textContent = currency(recurringPaid);
       stickyOneTimePaid.textContent = currency(oneTimePaid);
       stickyCount.textContent = `${paidCount} item${paidCount === 1 ? "" : "s"} marked paid`;
     }
