@@ -277,6 +277,14 @@
       min-width: 0;
     }
 
+    .expense-summary {
+      display: none;
+    }
+
+    .expense-details {
+      display: contents;
+    }
+
     .mobile-label {
       display: none;
       font-size: 0.74rem;
@@ -470,19 +478,86 @@
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       }
 
-      .expense-row button {
-        width: 100%;
+      .expense-row {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "summary"
+          "details";
+        align-items: stretch;
+        padding: 10px;
+        border-radius: 14px;
       }
 
-      .expense-row {
+      .expense-summary {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+          "name amount"
+          "meta meta";
+        gap: 4px 10px;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .expense-summary-name {
+        grid-area: name;
+        font-weight: 700;
+        font-size: 0.98rem;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .expense-summary-amount {
+        grid-area: amount;
+        font-weight: 700;
+        color: var(--accent-strong);
+        font-size: 0.96rem;
+      }
+
+      .expense-summary-meta {
+        grid-area: meta;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .summary-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: rgba(47, 124, 87, 0.08);
+      }
+
+      .summary-chip.paid {
+        background: rgba(47, 124, 87, 0.16);
+        color: var(--accent-strong);
+      }
+
+      .summary-chip.unpaid {
+        background: rgba(188, 108, 37, 0.12);
+        color: #8a4f1c;
+      }
+
+      .expense-details {
+        display: none;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         grid-template-areas:
           "name name"
           "amount due"
           "paid delete";
-        align-items: end;
         gap: 8px 10px;
-        padding: 10px;
-        border-radius: 14px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(61, 74, 66, 0.1);
+      }
+
+      .expense-row.expanded .expense-details {
+        display: grid;
       }
 
       .expense-row .expense-field[data-mobile="name"] {
@@ -525,6 +600,7 @@
       }
 
       .expense-row button {
+        width: 100%;
         padding: 8px 10px;
         border-radius: 12px;
         font-size: 0.9rem;
@@ -708,7 +784,7 @@
               <input id="syncCode" type="password" placeholder="Shared sync code">
             </div>
             <div class="row">
-              <button id="connectSyncBtn" type="button">Connect Sync</button>
+              <button id="connectSyncBtn" type="button">Cloud Sync</button>
               <button id="refreshSyncBtn" class="secondary" type="button">Refresh From Cloud</button>
             </div>
             <p class="muted-note">Use the same budget ID and sync code on desktop and mobile to keep them in sync.</p>
@@ -927,35 +1003,53 @@
 
       container.innerHTML = items.map((item) => `
         <div class="expense-row ${item.paid ? "paid" : ""}" data-type="${type}" data-id="${item.id}">
-          <div class="expense-field" data-mobile="name">
-            <div class="mobile-label">Name</div>
-            <input type="text" value="${escapeAttribute(item.name)}" data-field="name" aria-label="Expense name">
-          </div>
-          <div class="expense-field" data-mobile="amount">
-            <div class="mobile-label">Amount</div>
-            <input type="number" value="${Number(item.amount).toFixed(2)}" min="0" step="0.01" data-field="amount" aria-label="Amount">
-          </div>
-          <div class="expense-field" data-mobile="due">
-            <div class="mobile-label">Date</div>
-            <input type="date" value="${item.dueDate || ""}" data-field="dueDate" aria-label="Due date">
-          </div>
-          <div class="expense-field" data-mobile="paid">
-            <div class="mobile-label">Paid</div>
-            <label class="checkbox-wrap"><input type="checkbox" ${item.paid ? "checked" : ""} data-field="paid" aria-label="Paid"></label>
-          </div>
-          <div class="expense-field" data-mobile="delete">
-            <div class="mobile-label">Remove</div>
-            <button type="button" data-action="delete" aria-label="Delete expense">Delete</button>
+          <button class="expense-summary" type="button" data-action="toggle" aria-expanded="false">
+            <div class="expense-summary-name">${escapeHtml(item.name || "Untitled expense")}</div>
+            <div class="expense-summary-amount">${currency(Number(item.amount || 0))}</div>
+            <div class="expense-summary-meta">
+              <span class="summary-chip ${item.paid ? "paid" : "unpaid"}">${item.paid ? "Paid" : "Unpaid"}</span>
+              <span class="summary-chip">${item.dueDate ? formatShortDate(item.dueDate) : "No date"}</span>
+              <span class="summary-chip">Tap to edit</span>
+            </div>
+          </button>
+          <div class="expense-details">
+            <div class="expense-field" data-mobile="name">
+              <div class="mobile-label">Name</div>
+              <input type="text" value="${escapeAttribute(item.name)}" data-field="name" aria-label="Expense name">
+            </div>
+            <div class="expense-field" data-mobile="amount">
+              <div class="mobile-label">Amount</div>
+              <input type="number" value="${Number(item.amount).toFixed(2)}" min="0" step="0.01" data-field="amount" aria-label="Amount">
+            </div>
+            <div class="expense-field" data-mobile="due">
+              <div class="mobile-label">Date</div>
+              <input type="date" value="${item.dueDate || ""}" data-field="dueDate" aria-label="Due date">
+            </div>
+            <div class="expense-field" data-mobile="paid">
+              <div class="mobile-label">Paid</div>
+              <label class="checkbox-wrap"><input type="checkbox" ${item.paid ? "checked" : ""} data-field="paid" aria-label="Paid"></label>
+            </div>
+            <div class="expense-field" data-mobile="delete">
+              <div class="mobile-label">Remove</div>
+              <button type="button" data-action="delete" aria-label="Delete expense">Delete</button>
+            </div>
           </div>
         </div>
       `).join("");
 
       container.querySelectorAll(".expense-row").forEach((row) => {
+        const toggleButton = row.querySelector('[data-action="toggle"]');
+        if (toggleButton) {
+          toggleButton.addEventListener("click", () => {
+            const expanded = row.classList.toggle("expanded");
+            toggleButton.setAttribute("aria-expanded", expanded ? "true" : "false");
+          });
+        }
         row.querySelectorAll("input").forEach((input) => {
           const eventName = input.type === "checkbox" ? "change" : "input";
           input.addEventListener(eventName, () => updateExpense(row.dataset.type, row.dataset.id, input.dataset.field, input.type === "checkbox" ? input.checked : input.value));
         });
-        row.querySelector("button").addEventListener("click", () => removeExpense(row.dataset.type, row.dataset.id));
+        row.querySelector('button[data-action="delete"]').addEventListener("click", () => removeExpense(row.dataset.type, row.dataset.id));
       });
     }
 
@@ -1295,6 +1389,15 @@
       const month = String(now.getMonth() + 1).padStart(2, "0");
       const day = String(now.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
+    }
+
+    function formatShortDate(value) {
+      if (!value) {
+        return "";
+      }
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(year, (month || 1) - 1, day || 1);
+      return date.toLocaleDateString([], { month: "short", day: "numeric" });
     }
 
     function escapeHtml(value) {
