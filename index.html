@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAH Budget Helper</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --panel: rgba(255, 252, 247, 0.94);
+      --panel-strong: #fffaf2;
+      --text: #1f2a24;
+      --muted: #5f6d65;
+      --line: rgba(70, 82, 72, 0.16);
+      --accent: #2f7c57;
+      --accent-strong: #215840;
+      --accent-soft: rgba(47, 124, 87, 0.12);
+      --warn: #bc6c25;
+      --danger: #b84d4d;
+      --shadow: 0 24px 55px rgba(64, 47, 31, 0.12);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.85), transparent 35%),
+        linear-gradient(160deg, #efe5d5 0%, #f8f4ee 55%, #e5ede3 100%);
+      min-height: 100vh;
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 24px));
+      margin: 0 auto;
+      padding: 20px 0 112px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(255, 250, 242, 0.95), rgba(242, 248, 244, 0.88));
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      box-shadow: var(--shadow);
+      border-radius: 28px;
+      padding: 24px;
+      margin-bottom: 18px;
+    }
+
+    .hero-top,
+    .toolbar,
+    .summary,
+    .expense-head,
+    .expense-row,
+    .sticky-total,
+    .empty-state {
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero-top {
+      grid-template-columns: 1.6fr 1fr;
+      align-items: start;
+      gap: 18px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .eyebrow {
+      color: var(--accent-strong);
+      font-size: 0.8rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .hero p {
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: 10px;
+      max-width: 60ch;
+    }
+
+    .toolbar {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 20px;
+    }
+
+    .control-card,
+    .summary-card,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 14px 28px rgba(86, 70, 49, 0.08);
+    }
+
+    .control-card {
+      padding: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    input,
+    select,
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(61, 74, 66, 0.18);
+      background: #fffdfa;
+      color: var(--text);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid rgba(47, 124, 87, 0.18);
+      border-color: var(--accent);
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 11px 14px;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+      transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: var(--accent-strong);
+    }
+
+    button.secondary {
+      background: #ecf3ee;
+      color: var(--accent-strong);
+    }
+
+    button.secondary:hover {
+      background: #dfeee5;
+    }
+
+    button.warn {
+      background: #f4e6d8;
+      color: #8a4f1c;
+    }
+
+    button.warn:hover {
+      background: #edd9c5;
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid rgba(61, 74, 66, 0.14);
+    }
+
+    button.ghost:hover {
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .summary {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin: 18px 0;
+    }
+
+    .summary-card {
+      padding: 18px;
+    }
+
+    .summary-card small {
+      display: block;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+      font-size: 0.73rem;
+      font-weight: 700;
+    }
+
+    .summary-card strong {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .panel-header p {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    .expense-head,
+    .expense-row {
+      grid-template-columns: minmax(160px, 2fr) 110px 150px 84px 64px;
+      align-items: center;
+    }
+
+    .expense-head {
+      padding: 0 10px 8px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .expense-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .expense-row {
+      padding: 10px;
+      background: var(--panel-strong);
+      border: 1px solid rgba(61, 74, 66, 0.12);
+      border-radius: 18px;
+    }
+
+    .expense-row.paid {
+      background: linear-gradient(135deg, rgba(232, 247, 237, 0.86), rgba(255, 252, 247, 0.96));
+    }
+
+    .expense-row input[type="text"],
+    .expense-row input[type="number"],
+    .expense-row input[type="date"] {
+      padding: 9px 10px;
+    }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .checkbox-wrap input {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--accent);
+    }
+
+    .expense-row button {
+      padding: 10px;
+      background: #f7ebe7;
+      color: var(--danger);
+    }
+
+    .expense-row button:hover {
+      background: #f0ddd8;
+    }
+
+    .subsection {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(61, 74, 66, 0.1);
+    }
+
+    .add-form {
+      display: grid;
+      grid-template-columns: minmax(180px, 2fr) 120px 160px 140px;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .add-form button {
+      align-self: end;
+    }
+
+    .helper-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .helper-card {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(61, 74, 66, 0.1);
+      background: linear-gradient(180deg, rgba(255, 252, 247, 0.95), rgba(247, 244, 238, 0.95));
+    }
+
+    .helper-card p {
+      margin-top: 8px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+
+    .helper-card .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .empty-state {
+      place-items: center;
+      text-align: center;
+      padding: 28px 12px;
+      border: 1px dashed rgba(61, 74, 66, 0.18);
+      border-radius: 20px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    .sticky-total {
+      position: fixed;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      width: min(1120px, calc(100% - 24px));
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      padding: 16px 18px;
+      background: rgba(31, 42, 36, 0.95);
+      color: white;
+      border-radius: 22px;
+      box-shadow: 0 18px 40px rgba(19, 23, 21, 0.26);
+      backdrop-filter: blur(14px);
+      z-index: 20;
+    }
+
+    .sticky-total small {
+      display: block;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .sticky-total strong {
+      font-size: clamp(1.3rem, 3vw, 2rem);
+    }
+
+    .sticky-total .compact {
+      color: rgba(255, 255, 255, 0.78);
+      font-weight: 600;
+    }
+
+    .status-note {
+      margin-top: 12px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .muted-note {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .sync-status {
+      min-height: 1.4em;
+      color: var(--accent-strong);
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .status-note strong {
+      color: var(--accent-strong);
+    }
+
+    @media (max-width: 980px) {
+      .hero-top,
+      .grid,
+      .toolbar,
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .add-form {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: min(100% - 16px, 100%);
+        padding-bottom: 132px;
+      }
+
+      .hero,
+      .panel {
+        padding: 16px;
+      }
+
+      .expense-head {
+        display: none;
+      }
+
+      .expense-row,
+      .add-form {
+        grid-template-columns: 1fr;
+      }
+
+      .expense-row button {
+        width: 100%;
+      }
+
+      .checkbox-wrap {
+        justify-content: flex-start;
+      }
+
+      .sticky-total {
+        width: calc(100% - 16px);
+        left: 8px;
+        transform: none;
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="eyebrow">Simple Cloud Budget App</div>
+          <h1>TAH Budget Helper</h1>
+          <p>Built as a single-file budget tracker that works well on desktop and mobile. You can add monthly expenses anytime, mark items paid, and keep a live running total at the bottom.</p>
+          <div class="status-note" id="saveStatus"></div>
+        </div>
+        <div class="control-card">
+          <label for="monthSelect">Current month</label>
+          <select id="monthSelect"></select>
+          <div class="row" style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+            <button id="nextMonthBtn" type="button">Start Next Month</button>
+            <button id="newMonthBtn" class="secondary" type="button">Add Blank Month</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="control-card">
+          <label for="monthNameInput">Month name</label>
+          <input id="monthNameInput" type="text" placeholder="April 2026">
+        </div>
+        <div class="control-card">
+          <label for="newMonthTemplate">New month setup</label>
+          <select id="newMonthTemplate">
+            <option value="copyRecurring">Copy recurring expenses only</option>
+            <option value="copyAll">Copy everything, reset paid boxes</option>
+            <option value="blank">Create a blank month</option>
+          </select>
+        </div>
+        <div class="control-card">
+          <label>Backup</label>
+          <button id="downloadBtn" class="secondary" type="button">Download Budget Data</button>
+        </div>
+        <div class="control-card">
+          <label for="uploadInput">Restore backup</label>
+          <input id="uploadInput" type="file" accept="application/json">
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="summary-card">
+          <small>Total planned</small>
+          <strong id="plannedTotal">$0.00</strong>
+          <span>All recurring and one-time items this month</span>
+        </div>
+        <div class="summary-card">
+          <small>Total paid</small>
+          <strong id="paidTotal">$0.00</strong>
+          <span>Updates instantly as you check items off</span>
+        </div>
+        <div class="summary-card">
+          <small>Left to pay</small>
+          <strong id="remainingTotal">$0.00</strong>
+          <span>What still remains this month</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Recurring Expenses</h2>
+            <p>Core monthly bills copied forward when you start the next month.</p>
+          </div>
+        </div>
+        <div class="expense-head">
+          <div>Name</div>
+          <div>Amount</div>
+          <div>Due date</div>
+          <div>Paid</div>
+          <div>Remove</div>
+        </div>
+        <div class="expense-list" id="recurringList"></div>
+
+        <div class="subsection">
+          <h3>Add recurring expense</h3>
+          <div class="add-form">
+            <input id="recurringName" type="text" placeholder="Expense name">
+            <input id="recurringAmount" type="number" min="0" step="0.01" placeholder="0.00">
+            <input id="recurringDueDate" type="date">
+            <button id="addRecurringBtn" type="button">Add Expense</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>One-Time Payments</h2>
+            <p>Extra charges for the current month only.</p>
+          </div>
+        </div>
+        <div class="expense-head">
+          <div>Name</div>
+          <div>Amount</div>
+          <div>Due date</div>
+          <div>Paid</div>
+          <div>Remove</div>
+        </div>
+        <div class="expense-list" id="oneTimeList"></div>
+
+        <div class="subsection">
+          <h3>Add one-time payment</h3>
+          <div class="add-form">
+            <input id="oneTimeName" type="text" placeholder="Expense name">
+            <input id="oneTimeAmount" type="number" min="0" step="0.01" placeholder="0.00">
+            <input id="oneTimeDueDate" type="date">
+            <button id="addOneTimeBtn" type="button">Add Payment</button>
+          </div>
+        </div>
+
+        <div class="subsection helper-actions">
+          <div class="helper-card">
+            <h3>Supabase Autosave</h3>
+            <p>The app can autosave to Supabase in the background and sync across devices using one shared budget ID and sync code.</p>
+            <div class="stack" style="margin-top:12px;">
+              <input id="budgetId" type="text" placeholder="Budget ID">
+              <input id="syncCode" type="password" placeholder="Shared sync code">
+            </div>
+            <div class="row">
+              <button id="connectSyncBtn" type="button">Connect Sync</button>
+              <button id="refreshSyncBtn" class="secondary" type="button">Refresh From Cloud</button>
+            </div>
+            <p class="muted-note">Use the same budget ID and sync code on desktop and mobile to keep them in sync.</p>
+            <div class="sync-status" id="syncStatus"></div>
+          </div>
+          <div class="helper-card">
+            <h3>Why this setup is the simplest fit</h3>
+            <p>A single `index.html` still works well on GitHub Pages, stays easy to update, and now autosaves to Supabase for cross-device syncing. The backup button is still there if you want an offline copy.</p>
+          </div>
+          <div class="helper-card">
+            <h3>Monthly reset made easy</h3>
+            <p>Use <strong>Start Next Month</strong> to carry recurring bills forward with paid boxes cleared. One-time items stay behind unless you choose to copy everything.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="sticky-total">
+    <div>
+      <small>Running Amount Paid</small>
+      <strong id="stickyPaid">$0.00</strong>
+    </div>
+    <div class="compact" id="stickyCount">0 items marked paid</div>
+    <button id="clearPaidBtn" class="warn" type="button">Clear Paid Checks</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const STORAGE_KEY = "tah-budget-helper-v1";
+    const SYNC_SETTINGS_KEY = "tah-budget-helper-sync-settings";
+    const SUPABASE_URL = "https://razfhwyojyzcisjtcznm.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_RQPOo9DEEdTTxRW4UBlGXw_NfxDpnF2";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    const initialData = {
+      currentMonthId: "2026-04",
+      months: {
+        "2026-04": {
+          id: "2026-04",
+          name: "April 2026",
+          recurring: [
+            { id: createId(), name: "Medica", amount: 257.29, dueDate: "2026-04-01", paid: false },
+            { id: createId(), name: "Dentegra", amount: 21.20, dueDate: "2026-04-01", paid: false },
+            { id: createId(), name: "Prudential Life", amount: 141.33, dueDate: "2026-04-01", paid: false },
+            { id: createId(), name: "Mortgage", amount: 2560.00, dueDate: "", paid: false },
+            { id: createId(), name: "Suburban Waste", amount: 141.33, dueDate: "2026-04-01", paid: false },
+            { id: createId(), name: "CenterPoint", amount: 181.98, dueDate: "2026-04-20", paid: false },
+            { id: createId(), name: "Xcel Energy", amount: 120.00, dueDate: "", paid: false },
+            { id: createId(), name: "Groceries (4 x $90)", amount: 360.00, dueDate: "", paid: false },
+            { id: createId(), name: "Transportation/Gas (4 x $20)", amount: 80.00, dueDate: "", paid: false },
+            { id: createId(), name: "Xfinity Home Internet", amount: 60.00, dueDate: "2026-04-09", paid: false },
+            { id: createId(), name: "Chase ($7870/60)", amount: 130.00, dueDate: "2026-04-19", paid: false },
+            { id: createId(), name: "US Bank ($6729/60)", amount: 708.00, dueDate: "", paid: false },
+            { id: createId(), name: "Credit Card", amount: 330.00, dueDate: "", paid: false },
+            { id: createId(), name: "Ben - Kids Medical Insurance", amount: 279.00, dueDate: "", paid: false }
+          ],
+          oneTime: [
+            { id: createId(), name: "M Fairview Health", amount: 127.73, dueDate: "2026-04-01", paid: false },
+            { id: createId(), name: "Emergency Providers Service", amount: 55.15, dueDate: "2026-04-01", paid: false },
+            { id: createId(), name: "Childrens Minnesota", amount: 15.40, dueDate: "2026-04-01", paid: false }
+          ]
+        }
+      }
+    };
+
+    let state = loadState();
+    let syncSettings = loadSyncSettings();
+    let saveTimer = null;
+    let syncReady = false;
+
+    const monthSelect = document.getElementById("monthSelect");
+    const monthNameInput = document.getElementById("monthNameInput");
+    const newMonthTemplate = document.getElementById("newMonthTemplate");
+    const recurringList = document.getElementById("recurringList");
+    const oneTimeList = document.getElementById("oneTimeList");
+    const plannedTotal = document.getElementById("plannedTotal");
+    const paidTotal = document.getElementById("paidTotal");
+    const remainingTotal = document.getElementById("remainingTotal");
+    const stickyPaid = document.getElementById("stickyPaid");
+    const stickyCount = document.getElementById("stickyCount");
+    const saveStatus = document.getElementById("saveStatus");
+    const uploadInput = document.getElementById("uploadInput");
+    const syncStatus = document.getElementById("syncStatus");
+    const budgetIdInput = document.getElementById("budgetId");
+    const syncCodeInput = document.getElementById("syncCode");
+
+    document.getElementById("addRecurringBtn").addEventListener("click", () => addExpense("recurring"));
+    document.getElementById("addOneTimeBtn").addEventListener("click", () => addExpense("oneTime"));
+    document.getElementById("nextMonthBtn").addEventListener("click", startNextMonth);
+    document.getElementById("newMonthBtn").addEventListener("click", addBlankMonth);
+    document.getElementById("downloadBtn").addEventListener("click", downloadBackup);
+    document.getElementById("clearPaidBtn").addEventListener("click", clearPaidChecks);
+    document.getElementById("connectSyncBtn").addEventListener("click", connectSync);
+    document.getElementById("refreshSyncBtn").addEventListener("click", refreshFromCloud);
+    monthSelect.addEventListener("change", (event) => {
+      state.currentMonthId = event.target.value;
+      persist();
+      render();
+    });
+    monthNameInput.addEventListener("change", () => {
+      currentMonth().name = monthNameInput.value.trim() || currentMonth().name;
+      persist();
+      renderMonthSelector();
+    });
+    uploadInput.addEventListener("change", restoreBackup);
+    [budgetIdInput, syncCodeInput].forEach((element) => {
+      element.addEventListener("change", persistSyncSettings);
+    });
+
+    render();
+    initializeSync();
+
+    function createId() {
+      return Math.random().toString(36).slice(2, 10);
+    }
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) {
+          return cloneData(initialData);
+        }
+        const parsed = JSON.parse(saved);
+        if (!parsed.months || !parsed.currentMonthId) {
+          return cloneData(initialData);
+        }
+        return parsed;
+      } catch (error) {
+        return cloneData(initialData);
+      }
+    }
+
+    function persist(options = {}) {
+      const shouldSync = options.sync !== false;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const stamp = new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+      saveStatus.innerHTML = "<strong>Saved locally:</strong> " + stamp;
+      if (shouldSync) {
+        queueSupabaseSave();
+      }
+    }
+
+    function loadSyncSettings() {
+      try {
+        const saved = localStorage.getItem(SYNC_SETTINGS_KEY);
+        if (!saved) {
+          return {
+            budgetId: "tah-shared-budget",
+            syncCode: ""
+          };
+        }
+        return JSON.parse(saved);
+      } catch (error) {
+        return {
+          budgetId: "tah-shared-budget",
+          syncCode: ""
+        };
+      }
+    }
+
+    function persistSyncSettings() {
+      syncSettings = {
+        budgetId: budgetIdInput.value.trim() || "tah-shared-budget",
+        syncCode: syncCodeInput.value.trim()
+      };
+      localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify(syncSettings));
+      syncReady = false;
+      if (syncSettings.syncCode) {
+        syncStatus.textContent = "Settings saved. Click Connect Sync to start cloud sync.";
+      } else {
+        syncStatus.textContent = "Enter a sync code, then connect sync.";
+      }
+    }
+
+    function currentMonth() {
+      return state.months[state.currentMonthId];
+    }
+
+    function monthIds() {
+      return Object.keys(state.months).sort();
+    }
+
+    function render() {
+      renderMonthSelector();
+      renderExpenseList("recurring", recurringList);
+      renderExpenseList("oneTime", oneTimeList);
+      renderTotals();
+      monthNameInput.value = currentMonth().name;
+      renderSyncSettings();
+    }
+
+    function renderSyncSettings() {
+      budgetIdInput.value = syncSettings.budgetId || "tah-shared-budget";
+      syncCodeInput.value = syncSettings.syncCode || "";
+      if (!syncSettings.syncCode) {
+        syncStatus.textContent = "Enter a sync code, then connect sync.";
+      }
+    }
+
+    function renderMonthSelector() {
+      const ids = monthIds();
+      monthSelect.innerHTML = ids.map((id) => {
+        const month = state.months[id];
+        const selected = id === state.currentMonthId ? "selected" : "";
+        return `<option value="${id}" ${selected}>${escapeHtml(month.name)}</option>`;
+      }).join("");
+    }
+
+    function renderExpenseList(type, container) {
+      const items = currentMonth()[type];
+      if (!items.length) {
+        container.innerHTML = `<div class="empty-state">No items here yet. Add a ${type === "recurring" ? "monthly bill" : "one-time payment"} below.</div>`;
+        return;
+      }
+
+      container.innerHTML = items.map((item) => `
+        <div class="expense-row ${item.paid ? "paid" : ""}" data-type="${type}" data-id="${item.id}">
+          <input type="text" value="${escapeAttribute(item.name)}" data-field="name" aria-label="Expense name">
+          <input type="number" value="${Number(item.amount).toFixed(2)}" min="0" step="0.01" data-field="amount" aria-label="Amount">
+          <input type="date" value="${item.dueDate || ""}" data-field="dueDate" aria-label="Due date">
+          <label class="checkbox-wrap"><input type="checkbox" ${item.paid ? "checked" : ""} data-field="paid" aria-label="Paid"></label>
+          <button type="button" data-action="delete" aria-label="Delete expense">Delete</button>
+        </div>
+      `).join("");
+
+      container.querySelectorAll(".expense-row").forEach((row) => {
+        row.querySelectorAll("input").forEach((input) => {
+          const eventName = input.type === "checkbox" ? "change" : "input";
+          input.addEventListener(eventName, () => updateExpense(row.dataset.type, row.dataset.id, input.dataset.field, input.type === "checkbox" ? input.checked : input.value));
+        });
+        row.querySelector("button").addEventListener("click", () => removeExpense(row.dataset.type, row.dataset.id));
+      });
+    }
+
+    function updateExpense(type, id, field, value) {
+      const item = currentMonth()[type].find((entry) => entry.id === id);
+      if (!item) {
+        return;
+      }
+
+      if (field === "amount") {
+        item.amount = Number(value || 0);
+      } else if (field === "paid") {
+        item.paid = Boolean(value);
+        if (item.paid && !item.dueDate) {
+          item.dueDate = todayString();
+        }
+      } else {
+        item[field] = value;
+      }
+
+      persist();
+      if (field === "paid") {
+        const container = type === "recurring" ? recurringList : oneTimeList;
+        const row = container.querySelector(`.expense-row[data-id="${id}"]`);
+        if (row) {
+          row.classList.toggle("paid", item.paid);
+          const dateInput = row.querySelector('input[data-field="dueDate"]');
+          if (dateInput && item.dueDate) {
+            dateInput.value = item.dueDate;
+          }
+        }
+      }
+      renderTotals();
+    }
+
+    function removeExpense(type, id) {
+      currentMonth()[type] = currentMonth()[type].filter((entry) => entry.id !== id);
+      persist();
+      render();
+    }
+
+    function addExpense(type) {
+      const prefix = type === "recurring" ? "recurring" : "oneTime";
+      const nameInput = document.getElementById(prefix + "Name");
+      const amountInput = document.getElementById(prefix + "Amount");
+      const dueDateInput = document.getElementById(prefix + "DueDate");
+
+      const name = nameInput.value.trim();
+      const amount = Number(amountInput.value || 0);
+      const dueDate = dueDateInput.value;
+
+      if (!name) {
+        nameInput.focus();
+        return;
+      }
+
+      currentMonth()[type].push({
+        id: createId(),
+        name,
+        amount,
+        dueDate,
+        paid: false
+      });
+
+      nameInput.value = "";
+      amountInput.value = "";
+      dueDateInput.value = "";
+      persist();
+      render();
+    }
+
+    function renderTotals() {
+      const items = [...currentMonth().recurring, ...currentMonth().oneTime];
+      const planned = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const paid = items.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
+      const remaining = planned - paid;
+      const paidCount = items.filter((item) => item.paid).length;
+
+      plannedTotal.textContent = currency(planned);
+      paidTotal.textContent = currency(paid);
+      remainingTotal.textContent = currency(remaining);
+      stickyPaid.textContent = currency(paid);
+      stickyCount.textContent = `${paidCount} item${paidCount === 1 ? "" : "s"} marked paid`;
+    }
+
+    function startNextMonth() {
+      const current = currentMonth();
+      const nextId = incrementMonthId(state.currentMonthId);
+      if (state.months[nextId]) {
+        state.currentMonthId = nextId;
+        persist();
+        render();
+        return;
+      }
+
+      const mode = newMonthTemplate.value;
+      const nextName = formatMonthLabel(nextId);
+      state.months[nextId] = {
+        id: nextId,
+        name: nextName,
+        recurring: current.recurring.map(cloneExpenseForNextMonth(nextId)),
+        oneTime: mode === "copyAll" ? current.oneTime.map(cloneExpenseForNextMonth(nextId)) : []
+      };
+
+      if (mode === "blank") {
+        state.months[nextId].recurring = [];
+        state.months[nextId].oneTime = [];
+      }
+
+      state.currentMonthId = nextId;
+      persist();
+      render();
+    }
+
+    function addBlankMonth() {
+      const typedName = monthNameInput.value.trim();
+      const parsed = parseMonthName(typedName);
+      const id = parsed || incrementMonthId(monthIds().slice(-1)[0]);
+
+      if (state.months[id]) {
+        state.currentMonthId = id;
+      } else {
+        state.months[id] = {
+          id,
+          name: parsed ? formatMonthLabel(id) : typedName || formatMonthLabel(id),
+          recurring: [],
+          oneTime: []
+        };
+        state.currentMonthId = id;
+      }
+
+      persist();
+      render();
+    }
+
+    function clearPaidChecks() {
+      [...currentMonth().recurring, ...currentMonth().oneTime].forEach((item) => {
+        item.paid = false;
+      });
+      persist();
+      render();
+    }
+
+    function cloneExpenseForNextMonth(nextMonthId) {
+      return (item) => ({
+        id: createId(),
+        name: item.name,
+        amount: Number(item.amount || 0),
+        dueDate: shiftDateToMonth(item.dueDate, nextMonthId),
+        paid: false
+      });
+    }
+
+    function incrementMonthId(id) {
+      const [yearText, monthText] = id.split("-");
+      let year = Number(yearText);
+      let month = Number(monthText);
+      month += 1;
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+      return `${year}-${String(month).padStart(2, "0")}`;
+    }
+
+    function shiftDateToMonth(dateString, monthId) {
+      if (!dateString) {
+        return "";
+      }
+      const [, , dayText] = dateString.split("-");
+      const [yearText, monthText] = monthId.split("-");
+      const day = Math.min(Number(dayText || 1), daysInMonth(Number(yearText), Number(monthText)));
+      return `${monthId}-${String(day).padStart(2, "0")}`;
+    }
+
+    function formatMonthLabel(id) {
+      const [year, month] = id.split("-").map(Number);
+      return new Date(year, month - 1, 1).toLocaleDateString([], { month: "long", year: "numeric" });
+    }
+
+    function parseMonthName(text) {
+      if (!text) {
+        return "";
+      }
+      const parsed = new Date(text);
+      if (Number.isNaN(parsed.getTime())) {
+        return "";
+      }
+      return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function daysInMonth(year, month) {
+      return new Date(year, month, 0).getDate();
+    }
+
+    function cloneData(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function downloadBackup() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "tah-budget-helper-data.json";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function restoreBackup(event) {
+      const file = event.target.files[0];
+      if (!file) {
+        return;
+      }
+
+      file.text().then((content) => {
+        const parsed = JSON.parse(content);
+        if (!parsed.months || !parsed.currentMonthId) {
+          throw new Error("Invalid backup file.");
+        }
+        state = parsed;
+        persist();
+        render();
+        uploadInput.value = "";
+      }).catch(() => {
+        alert("That backup file could not be loaded.");
+        uploadInput.value = "";
+      });
+    }
+
+    async function initializeSync() {
+      if (!syncSettings.syncCode) {
+        return;
+      }
+      await connectSync();
+    }
+
+    async function connectSync() {
+      persistSyncSettings();
+      if (!syncSettings.budgetId || !syncSettings.syncCode) {
+        syncStatus.textContent = "Enter both a budget ID and sync code.";
+        syncReady = false;
+        return;
+      }
+
+      syncStatus.textContent = "Connecting to Supabase...";
+      const loaded = await loadBudgetFromSupabase();
+      syncReady = true;
+      if (loaded) {
+        syncStatus.textContent = "Cloud sync connected. Latest budget loaded.";
+      } else {
+        syncStatus.textContent = "Cloud sync connected. A new shared budget will be created on the next change.";
+      }
+    }
+
+    async function refreshFromCloud() {
+      persistSyncSettings();
+      if (!syncSettings.budgetId || !syncSettings.syncCode) {
+        syncStatus.textContent = "Enter both a budget ID and sync code.";
+        return;
+      }
+      syncStatus.textContent = "Refreshing from cloud...";
+      const loaded = await loadBudgetFromSupabase();
+      syncStatus.textContent = loaded ? "Budget refreshed from cloud." : "No cloud budget found yet for that budget ID.";
+    }
+
+    async function loadBudgetFromSupabase() {
+      try {
+        const { data, error } = await supabaseClient.rpc("get_budget_snapshot", {
+          p_budget_id: syncSettings.budgetId,
+          p_sync_code: syncSettings.syncCode
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data) {
+          return false;
+        }
+
+        const payload = typeof data === "string" ? JSON.parse(data) : data;
+        if (!payload.months || !payload.currentMonthId) {
+          return false;
+        }
+
+        state = payload;
+        persist({ sync: false });
+        render();
+        return true;
+      } catch (error) {
+        syncStatus.textContent = "Could not connect to Supabase. Finish the SQL setup first.";
+        syncReady = false;
+        return false;
+      }
+    }
+
+    function queueSupabaseSave() {
+      if (!syncReady || !syncSettings.budgetId || !syncSettings.syncCode) {
+        return;
+      }
+
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        saveBudgetToSupabase();
+      }, 700);
+    }
+
+    async function saveBudgetToSupabase() {
+      try {
+        const { error } = await supabaseClient.rpc("save_budget_snapshot", {
+          p_budget_id: syncSettings.budgetId,
+          p_sync_code: syncSettings.syncCode,
+          p_data: state
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        const stamp = new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+        syncStatus.textContent = "Autosaved to cloud at " + stamp;
+      } catch (error) {
+        syncStatus.textContent = "Cloud save failed. Check your sync code or Supabase setup.";
+      }
+    }
+
+    function currency(value) {
+      return new Intl.NumberFormat([], {
+        style: "currency",
+        currency: "USD"
+      }).format(value || 0);
+    }
+
+    function todayString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("\"", "&quot;");
+    }
+
+    function escapeAttribute(value) {
+      return escapeHtml(value).replaceAll("'", "&#39;");
+    }
+  </script>
+</body>
+</html>
