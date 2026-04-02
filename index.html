@@ -270,6 +270,20 @@
       padding: 9px 10px;
     }
 
+    .expense-field {
+      min-width: 0;
+    }
+
+    .mobile-label {
+      display: none;
+      font-size: 0.74rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
     .checkbox-wrap {
       display: flex;
       align-items: center;
@@ -437,15 +451,64 @@
 
       .expense-row,
       .add-form {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       }
 
       .expense-row button {
         width: 100%;
       }
 
+      .expense-row {
+        grid-template-areas:
+          "name name"
+          "amount due"
+          "paid delete";
+        align-items: end;
+        gap: 12px;
+        padding: 14px;
+      }
+
+      .expense-row .expense-field[data-mobile="name"] {
+        grid-area: name;
+      }
+
+      .expense-row .expense-field[data-mobile="amount"] {
+        grid-area: amount;
+      }
+
+      .expense-row .expense-field[data-mobile="due"] {
+        grid-area: due;
+      }
+
+      .expense-row .expense-field[data-mobile="paid"] {
+        grid-area: paid;
+      }
+
+      .expense-row .expense-field[data-mobile="delete"] {
+        grid-area: delete;
+      }
+
+      .mobile-label {
+        display: block;
+      }
+
       .checkbox-wrap {
         justify-content: flex-start;
+        margin-bottom: 4px;
+      }
+
+      .expense-row input[type="text"],
+      .expense-row input[type="number"],
+      .expense-row input[type="date"] {
+        font-size: 1rem;
+      }
+
+      .summary {
+        gap: 12px;
+      }
+
+      .summary-card {
+        padding: 16px;
       }
 
       .sticky-total {
@@ -801,11 +864,26 @@
 
       container.innerHTML = items.map((item) => `
         <div class="expense-row ${item.paid ? "paid" : ""}" data-type="${type}" data-id="${item.id}">
-          <input type="text" value="${escapeAttribute(item.name)}" data-field="name" aria-label="Expense name">
-          <input type="number" value="${Number(item.amount).toFixed(2)}" min="0" step="0.01" data-field="amount" aria-label="Amount">
-          <input type="date" value="${item.dueDate || ""}" data-field="dueDate" aria-label="Due date">
-          <label class="checkbox-wrap"><input type="checkbox" ${item.paid ? "checked" : ""} data-field="paid" aria-label="Paid"></label>
-          <button type="button" data-action="delete" aria-label="Delete expense">Delete</button>
+          <div class="expense-field" data-mobile="name">
+            <div class="mobile-label">Name</div>
+            <input type="text" value="${escapeAttribute(item.name)}" data-field="name" aria-label="Expense name">
+          </div>
+          <div class="expense-field" data-mobile="amount">
+            <div class="mobile-label">Amount</div>
+            <input type="number" value="${Number(item.amount).toFixed(2)}" min="0" step="0.01" data-field="amount" aria-label="Amount">
+          </div>
+          <div class="expense-field" data-mobile="due">
+            <div class="mobile-label">Date</div>
+            <input type="date" value="${item.dueDate || ""}" data-field="dueDate" aria-label="Due date">
+          </div>
+          <div class="expense-field" data-mobile="paid">
+            <div class="mobile-label">Paid</div>
+            <label class="checkbox-wrap"><input type="checkbox" ${item.paid ? "checked" : ""} data-field="paid" aria-label="Paid"></label>
+          </div>
+          <div class="expense-field" data-mobile="delete">
+            <div class="mobile-label">Remove</div>
+            <button type="button" data-action="delete" aria-label="Delete expense">Delete</button>
+          </div>
         </div>
       `).join("");
 
