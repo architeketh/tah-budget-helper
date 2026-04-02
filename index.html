@@ -97,6 +97,62 @@
       margin-top: 20px;
     }
 
+    .setup-panel {
+      display: none;
+      margin-top: 18px;
+    }
+
+    .setup-details {
+      border-radius: 22px;
+      border: 1px solid rgba(61, 74, 66, 0.12);
+      background: rgba(255, 251, 245, 0.78);
+      box-shadow: 0 14px 28px rgba(86, 70, 49, 0.08);
+      overflow: hidden;
+    }
+
+    .setup-summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      color: var(--accent-strong);
+      font-weight: 700;
+    }
+
+    .setup-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .setup-summary-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .setup-summary-text small {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .setup-chevron {
+      transition: transform 160ms ease;
+      font-size: 0.9rem;
+    }
+
+    .setup-details[open] .setup-chevron {
+      transform: rotate(180deg);
+    }
+
+    .setup-content {
+      padding: 0 12px 12px;
+    }
+
     .control-card,
     .summary-card,
     .panel {
@@ -459,6 +515,14 @@
     }
 
     @media (max-width: 760px) {
+      .toolbar {
+        display: none;
+      }
+
+      .setup-panel {
+        display: block;
+      }
+
       .shell {
         width: min(100% - 16px, 100%);
         padding-bottom: 132px;
@@ -702,6 +766,42 @@
         </div>
       </div>
 
+      <div class="setup-panel">
+        <details class="setup-details">
+          <summary class="setup-summary">
+            <span class="setup-summary-text">
+              <span>Setup</span>
+              <small>Month, backup, and restore</small>
+            </span>
+            <span class="setup-chevron">▼</span>
+          </summary>
+          <div class="setup-content">
+            <div class="toolbar" style="display:grid;">
+              <div class="control-card">
+                <label for="monthNameInputMobile">Month name</label>
+                <input id="monthNameInputMobile" type="text" placeholder="April 2026">
+              </div>
+              <div class="control-card">
+                <label for="newMonthTemplateMobile">New month setup</label>
+                <select id="newMonthTemplateMobile">
+                  <option value="copyRecurring">Copy recurring expenses only</option>
+                  <option value="copyAll">Copy everything, reset paid boxes</option>
+                  <option value="blank">Create a blank month</option>
+                </select>
+              </div>
+              <div class="control-card">
+                <label>Backup</label>
+                <button id="downloadBtnMobile" class="secondary" type="button">Download Budget Data</button>
+              </div>
+              <div class="control-card">
+                <label for="uploadInputMobile">Restore backup</label>
+                <input id="uploadInputMobile" type="file" accept="application/json">
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
       <div class="summary">
         <div class="summary-card">
           <small>Total planned</small>
@@ -868,6 +968,9 @@
     const stickyCount = document.getElementById("stickyCount");
     const saveStatus = document.getElementById("saveStatus");
     const uploadInput = document.getElementById("uploadInput");
+    const uploadInputMobile = document.getElementById("uploadInputMobile");
+    const monthNameInputMobile = document.getElementById("monthNameInputMobile");
+    const newMonthTemplateMobile = document.getElementById("newMonthTemplateMobile");
     const syncStatus = document.getElementById("syncStatus");
     const budgetIdInput = document.getElementById("budgetId");
     const syncCodeInput = document.getElementById("syncCode");
@@ -877,6 +980,7 @@
     document.getElementById("nextMonthBtn").addEventListener("click", startNextMonth);
     document.getElementById("newMonthBtn").addEventListener("click", addBlankMonth);
     document.getElementById("downloadBtn").addEventListener("click", downloadBackup);
+    document.getElementById("downloadBtnMobile").addEventListener("click", downloadBackup);
     document.getElementById("clearPaidBtn").addEventListener("click", clearPaidChecks);
     document.getElementById("connectSyncBtn").addEventListener("click", connectSync);
     document.getElementById("refreshSyncBtn").addEventListener("click", refreshFromCloud);
@@ -889,8 +993,22 @@
       currentMonth().name = monthNameInput.value.trim() || currentMonth().name;
       persist();
       renderMonthSelector();
+      monthNameInputMobile.value = currentMonth().name;
+    });
+    monthNameInputMobile.addEventListener("change", () => {
+      monthNameInput.value = monthNameInputMobile.value;
+      currentMonth().name = monthNameInputMobile.value.trim() || currentMonth().name;
+      persist();
+      renderMonthSelector();
+    });
+    newMonthTemplate.addEventListener("change", () => {
+      newMonthTemplateMobile.value = newMonthTemplate.value;
+    });
+    newMonthTemplateMobile.addEventListener("change", () => {
+      newMonthTemplate.value = newMonthTemplateMobile.value;
     });
     uploadInput.addEventListener("change", restoreBackup);
+    uploadInputMobile.addEventListener("change", restoreBackup);
     [budgetIdInput, syncCodeInput].forEach((element) => {
       element.addEventListener("change", persistSyncSettings);
     });
@@ -974,6 +1092,8 @@
       renderExpenseList("oneTime", oneTimeList);
       renderTotals();
       monthNameInput.value = currentMonth().name;
+      monthNameInputMobile.value = currentMonth().name;
+      newMonthTemplateMobile.value = newMonthTemplate.value;
       renderSyncSettings();
     }
 
