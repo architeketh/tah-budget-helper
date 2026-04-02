@@ -317,10 +317,41 @@
       background: var(--panel-strong);
       border: 1px solid rgba(61, 74, 66, 0.12);
       border-radius: 18px;
+      border-left-width: 6px;
     }
 
     .expense-row.paid {
       background: linear-gradient(135deg, rgba(232, 247, 237, 0.86), rgba(255, 252, 247, 0.96));
+    }
+
+    .group-1 {
+      border-left-color: #4c7aaf;
+      background: linear-gradient(135deg, rgba(76, 122, 175, 0.08), rgba(255, 250, 242, 0.96));
+    }
+
+    .group-2 {
+      border-left-color: #8c6bb1;
+      background: linear-gradient(135deg, rgba(140, 107, 177, 0.08), rgba(255, 250, 242, 0.96));
+    }
+
+    .group-3 {
+      border-left-color: #2d8a6f;
+      background: linear-gradient(135deg, rgba(45, 138, 111, 0.08), rgba(255, 250, 242, 0.96));
+    }
+
+    .group-4 {
+      border-left-color: #c97b3d;
+      background: linear-gradient(135deg, rgba(201, 123, 61, 0.08), rgba(255, 250, 242, 0.96));
+    }
+
+    .group-5 {
+      border-left-color: #c2556a;
+      background: linear-gradient(135deg, rgba(194, 85, 106, 0.08), rgba(255, 250, 242, 0.96));
+    }
+
+    .group-6 {
+      border-left-color: #6c8a3b;
+      background: linear-gradient(135deg, rgba(108, 138, 59, 0.08), rgba(255, 250, 242, 0.96));
     }
 
     .expense-row input[type="text"],
@@ -1122,7 +1153,7 @@
       }
 
       container.innerHTML = items.map((item) => `
-        <div class="expense-row ${item.paid ? "paid" : ""}" data-type="${type}" data-id="${item.id}">
+        <div class="expense-row ${item.paid ? "paid" : ""} ${expenseGroupClass(type, item.name)}" data-type="${type}" data-id="${item.id}">
           <button class="expense-summary" type="button" data-action="toggle" aria-expanded="false">
             <div class="expense-summary-name">${escapeHtml(item.name || "Untitled expense")}</div>
             <div class="expense-summary-amount">${currency(Number(item.amount || 0))}</div>
@@ -1518,6 +1549,29 @@
       const [year, month, day] = value.split("-").map(Number);
       const date = new Date(year, (month || 1) - 1, day || 1);
       return date.toLocaleDateString([], { month: "short", day: "numeric" });
+    }
+
+    function expenseGroupClass(type, name) {
+      const normalized = String(name || "").toLowerCase();
+      if (type === "oneTime") {
+        return "group-6";
+      }
+      if (["medica", "dentegra", "prudential life"].some((term) => normalized.includes(term))) {
+        return "group-1";
+      }
+      if (["mortgage", "suburban waste", "centerpoint", "center point", "xcel energy", "xcel engergy"].some((term) => normalized.includes(term))) {
+        return "group-2";
+      }
+      if (["groceries", "transportation", "gas", "xfinity home"].some((term) => normalized.includes(term))) {
+        return "group-3";
+      }
+      if (["chase", "us bank", "credit card"].some((term) => normalized.includes(term))) {
+        return "group-4";
+      }
+      if (normalized.includes("ben")) {
+        return "group-5";
+      }
+      return "group-6";
     }
 
     function escapeHtml(value) {
