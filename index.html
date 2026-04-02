@@ -949,6 +949,7 @@
       <small data-mobile-label="One-Time Paid">One-Time Amount Paid</small>
       <div id="stickyOneTimePaid">$0.00</div>
     </div>
+    <button id="stickyCloudSyncBtn" class="secondary" type="button">Cloud Sync</button>
     <button id="clearPaidBtn" class="warn" type="button">Clear Paid Checks</button>
   </div>
 
@@ -1023,6 +1024,7 @@
     document.getElementById("downloadBtnMobile").addEventListener("click", downloadBackup);
     document.getElementById("clearPaidBtn").addEventListener("click", clearPaidChecks);
     document.getElementById("connectSyncBtn").addEventListener("click", connectSync);
+    document.getElementById("stickyCloudSyncBtn").addEventListener("click", connectSync);
     document.getElementById("refreshSyncBtn").addEventListener("click", refreshFromCloud);
     document.getElementById("printSummaryBtn").addEventListener("click", printRecurringSummary);
     monthSelect.addEventListener("change", (event) => {
