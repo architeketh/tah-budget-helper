@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>TAH Budget Helper</title>
   <style>
     :root {
@@ -389,8 +392,9 @@
       letter-spacing: 0.08em;
     }
 
-    .sticky-total strong {
+    #stickyPaid {
       font-size: clamp(1.3rem, 3vw, 2rem);
+      font-weight: 700;
     }
 
     .sticky-total .compact {
@@ -402,6 +406,18 @@
       margin-top: 12px;
       font-size: 0.9rem;
       color: var(--muted);
+    }
+
+    .version-tag {
+      display: inline-flex;
+      margin-top: 10px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(47, 124, 87, 0.1);
+      color: var(--accent-strong);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
     }
 
     .muted-note {
@@ -515,7 +531,42 @@
         width: calc(100% - 16px);
         left: 8px;
         transform: none;
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "main amount"
+          "count count";
+        gap: 6px 10px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        align-items: center;
+      }
+
+      .sticky-total > div:first-child {
+        grid-area: main;
+      }
+
+      .sticky-total #stickyPaid {
+        grid-area: amount;
+        align-self: center;
+        justify-self: end;
+      }
+
+      .sticky-total .compact {
+        grid-area: count;
+        font-size: 0.82rem;
+      }
+
+      .sticky-total button {
+        display: none;
+      }
+
+      .sticky-total small {
+        margin-bottom: 2px;
+        font-size: 0.68rem;
+      }
+
+      .sticky-total #stickyPaid {
+        font-size: 1.25rem;
       }
     }
   </style>
@@ -528,6 +579,7 @@
           <div class="eyebrow">Simple Cloud Budget App</div>
           <h1>TAH Budget Helper</h1>
           <p>Built as a single-file budget tracker that works well on desktop and mobile. You can add monthly expenses anytime, mark items paid, and keep a live running total at the bottom.</p>
+          <div class="version-tag">Mobile refresh v2</div>
           <div class="status-note" id="saveStatus"></div>
         </div>
         <div class="control-card">
@@ -667,7 +719,7 @@
   <div class="sticky-total">
     <div>
       <small>Running Amount Paid</small>
-      <strong id="stickyPaid">$0.00</strong>
+      <div id="stickyPaid">$0.00</div>
     </div>
     <div class="compact" id="stickyCount">0 items marked paid</div>
     <button id="clearPaidBtn" class="warn" type="button">Clear Paid Checks</button>
