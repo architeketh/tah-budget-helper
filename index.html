@@ -973,9 +973,9 @@
 
   <div class="sticky-total">
     <div>
-      <small data-mobile-label="Recurring Paid">Recurring Amount Paid</small>
+      <small data-mobile-label="Unpaid">Unpaid</small>
       <div id="stickyPaid">$0.00</div>
-      <div class="compact" id="stickyCount">0/0 recurring items paid</div>
+      <div class="compact" id="stickyCount">0/0 items paid</div>
     </div>
     <div>
       <small data-mobile-label="One-Time Paid">One-Time Amount Paid</small>
@@ -1325,13 +1325,14 @@
       const oneTimeItems = currentMonth().oneTime;
       const recurringPlanned = recurringItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       const recurringPaid = recurringItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
+      const recurringUnpaid = recurringPlanned - recurringPaid;
       const oneTimePaid = oneTimeItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
       const paidCount = recurringItems.filter((item) => item.paid).length;
       const recurringCount = recurringItems.length;
 
       recurringPlannedTotal.textContent = currency(recurringPlanned);
       recurringPaidTotal.textContent = currency(recurringPaid);
-      stickyPaid.textContent = currency(recurringPaid);
+      stickyPaid.textContent = currency(recurringUnpaid);
       stickyOneTimePaid.textContent = currency(oneTimePaid);
       stickyCount.textContent = `${paidCount}/${recurringCount} items paid`;
     }
