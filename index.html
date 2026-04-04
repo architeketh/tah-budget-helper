@@ -314,14 +314,14 @@
 
     .expense-row {
       padding: 10px;
-      background: var(--panel-strong);
+      background: linear-gradient(135deg, rgba(246, 232, 228, 0.46), rgba(255, 250, 242, 0.97));
       border: 1px solid rgba(61, 74, 66, 0.12);
       border-radius: 18px;
       border-left-width: 6px;
     }
 
     .expense-row.paid {
-      background: linear-gradient(135deg, rgba(232, 247, 237, 0.86), rgba(255, 252, 247, 0.96));
+      background: linear-gradient(135deg, rgba(214, 238, 221, 0.98), rgba(247, 253, 249, 0.98));
     }
 
     .group-1 {
@@ -606,6 +606,11 @@
         align-items: stretch;
         padding: 10px;
         border-radius: 14px;
+        background: var(--panel-strong);
+      }
+
+      .expense-row.paid {
+        background: linear-gradient(135deg, rgba(232, 247, 237, 0.86), rgba(255, 252, 247, 0.96));
       }
 
       .expense-summary {
