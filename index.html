@@ -633,8 +633,8 @@
           "summary"
           "details";
         align-items: stretch;
-        padding: 10px;
-        border-radius: 14px;
+        padding: 8px;
+        border-radius: 12px;
         background: linear-gradient(135deg, rgba(244, 220, 220, 0.96), rgba(255, 248, 246, 0.98));
       }
 
@@ -681,7 +681,7 @@
         grid-template-areas:
           "name amount"
           "meta meta";
-        gap: 4px 10px;
+        gap: 2px 8px;
         align-items: center;
         cursor: pointer;
       }
@@ -689,7 +689,7 @@
       .expense-summary-name {
         grid-area: name;
         font-weight: 700;
-        font-size: 0.94rem;
+        font-size: 0.9rem;
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -700,7 +700,7 @@
         grid-area: amount;
         font-weight: 700;
         color: var(--accent-strong);
-        font-size: 0.92rem;
+        font-size: 0.88rem;
       }
 
       .expense-row.paid .expense-summary-name,
@@ -719,13 +719,13 @@
         flex-wrap: wrap;
         gap: 4px;
         color: var(--muted);
-        font-size: 0.74rem;
+        font-size: 0.7rem;
       }
 
       .summary-chip {
         display: inline-flex;
         align-items: center;
-        padding: 2px 7px;
+        padding: 1px 6px;
         border-radius: 999px;
         background: rgba(47, 124, 87, 0.08);
       }
@@ -747,9 +747,9 @@
           "name name"
           "amount due"
           "paid delete";
-        gap: 6px 8px;
-        margin-top: 8px;
-        padding-top: 8px;
+        gap: 5px 7px;
+        margin-top: 6px;
+        padding-top: 6px;
         border-top: 1px solid rgba(61, 74, 66, 0.1);
       }
 
@@ -779,8 +779,8 @@
 
       .mobile-label {
         display: block;
-        font-size: 0.68rem;
-        margin-bottom: 4px;
+        font-size: 0.64rem;
+        margin-bottom: 3px;
       }
 
       .checkbox-wrap {
@@ -791,16 +791,16 @@
       .expense-row input[type="text"],
       .expense-row input[type="number"],
       .expense-row input[type="date"] {
-        font-size: 0.92rem;
-        padding: 7px 8px;
-        border-radius: 12px;
+        font-size: 0.84rem;
+        padding: 5px 7px;
+        border-radius: 10px;
       }
 
       .expense-row button {
         width: 100%;
-        padding: 7px 9px;
-        border-radius: 12px;
-        font-size: 0.86rem;
+        padding: 5px 7px;
+        border-radius: 10px;
+        font-size: 0.78rem;
       }
 
       .summary {
@@ -883,7 +883,7 @@
           <div class="eyebrow">Simple Cloud Budget App</div>
           <h1>TAH Budget Helper</h1>
           <p>Built as a single-file budget tracker that works well on desktop and mobile. You can add monthly expenses anytime, mark items paid, and keep a live running total at the bottom.</p>
-          <div class="version-tag">Mobile refresh v2</div>
+          <div class="version-tag">Mobile refresh v3</div>
           <div class="status-note" id="saveStatus"></div>
         </div>
         <div class="control-card">
