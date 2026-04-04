@@ -357,7 +357,7 @@
     .expense-row input[type="text"],
     .expense-row input[type="number"],
     .expense-row input[type="date"] {
-      padding: 9px 10px;
+      padding: 7px 9px;
     }
 
     .expense-field {
@@ -389,13 +389,13 @@
     }
 
     .checkbox-wrap input {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       accent-color: var(--accent);
     }
 
     .expense-row button {
-      padding: 10px;
+      padding: 8px 10px;
       background: #f7ebe7;
       color: var(--danger);
     }
@@ -622,7 +622,7 @@
       .expense-summary-name {
         grid-area: name;
         font-weight: 700;
-        font-size: 0.98rem;
+        font-size: 0.94rem;
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -633,22 +633,27 @@
         grid-area: amount;
         font-weight: 700;
         color: var(--accent-strong);
-        font-size: 0.96rem;
+        font-size: 0.92rem;
+      }
+
+      .expense-row.paid .expense-summary-name,
+      .expense-row.paid .expense-summary-amount {
+        color: var(--accent-strong);
       }
 
       .expense-summary-meta {
         grid-area: meta;
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 4px;
         color: var(--muted);
-        font-size: 0.78rem;
+        font-size: 0.74rem;
       }
 
       .summary-chip {
         display: inline-flex;
         align-items: center;
-        padding: 3px 8px;
+        padding: 2px 7px;
         border-radius: 999px;
         background: rgba(47, 124, 87, 0.08);
       }
@@ -670,9 +675,9 @@
           "name name"
           "amount due"
           "paid delete";
-        gap: 8px 10px;
-        margin-top: 10px;
-        padding-top: 10px;
+        gap: 6px 8px;
+        margin-top: 8px;
+        padding-top: 8px;
         border-top: 1px solid rgba(61, 74, 66, 0.1);
       }
 
@@ -714,16 +719,16 @@
       .expense-row input[type="text"],
       .expense-row input[type="number"],
       .expense-row input[type="date"] {
-        font-size: 0.95rem;
-        padding: 8px 9px;
+        font-size: 0.92rem;
+        padding: 7px 8px;
         border-radius: 12px;
       }
 
       .expense-row button {
         width: 100%;
-        padding: 8px 10px;
+        padding: 7px 9px;
         border-radius: 12px;
-        font-size: 0.9rem;
+        font-size: 0.86rem;
       }
 
       .summary {
