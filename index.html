@@ -360,6 +360,25 @@
       padding: 7px 9px;
     }
 
+    .expense-row:not(.paid) input[type="text"],
+    .expense-row:not(.paid) input[type="number"],
+    .expense-row:not(.paid) input[type="date"] {
+      background: linear-gradient(180deg, rgba(249, 228, 228, 0.96), rgba(255, 244, 244, 0.98));
+      border-color: rgba(184, 77, 77, 0.2);
+    }
+
+    .expense-row:not(.paid) button[data-action="delete"] {
+      background: linear-gradient(180deg, rgba(250, 227, 227, 0.98), rgba(255, 241, 241, 0.98));
+      border: 1px solid rgba(184, 77, 77, 0.14);
+    }
+
+    .expense-row.paid input[type="text"],
+    .expense-row.paid input[type="number"],
+    .expense-row.paid input[type="date"] {
+      background: linear-gradient(180deg, rgba(233, 246, 238, 0.98), rgba(247, 253, 249, 0.98));
+      border-color: rgba(47, 124, 87, 0.18);
+    }
+
     .expense-field {
       min-width: 0;
     }
@@ -611,6 +630,21 @@
 
       .expense-row.paid {
         background: linear-gradient(135deg, rgba(232, 247, 237, 0.86), rgba(255, 252, 247, 0.96));
+      }
+
+      .expense-row:not(.paid) input[type="text"],
+      .expense-row:not(.paid) input[type="number"],
+      .expense-row:not(.paid) input[type="date"],
+      .expense-row.paid input[type="text"],
+      .expense-row.paid input[type="number"],
+      .expense-row.paid input[type="date"] {
+        background: #fffdfa;
+        border-color: rgba(61, 74, 66, 0.18);
+      }
+
+      .expense-row:not(.paid) button[data-action="delete"] {
+        background: #f7ebe7;
+        border: 0;
       }
 
       .expense-summary {
