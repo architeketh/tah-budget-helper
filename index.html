@@ -1015,9 +1015,9 @@
     </section>
   </div>
 
-  <div class="sticky-total">
-    <div>
-      <small data-mobile-label="Unpaid">Unpaid</small>
+    <div class="sticky-total">
+      <div>
+      <small id="stickyMonthLabel" data-mobile-label="Unpaid">Unpaid</small>
       <div id="stickyPaid">$0.00</div>
       <div class="compact" id="stickyCount">0/0 items paid</div>
     </div>
@@ -1080,6 +1080,7 @@
     const recurringPlannedTotal = document.getElementById("recurringPlannedTotal");
     const recurringPaidTotal = document.getElementById("recurringPaidTotal");
     const stickyPaid = document.getElementById("stickyPaid");
+    const stickyMonthLabel = document.getElementById("stickyMonthLabel");
     const stickyOneTimePaid = document.getElementById("stickyOneTimePaid");
     const stickyCount = document.getElementById("stickyCount");
     const saveStatus = document.getElementById("saveStatus");
@@ -1373,9 +1374,12 @@
       const oneTimePaid = oneTimeItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
       const paidCount = recurringItems.filter((item) => item.paid).length;
       const recurringCount = recurringItems.length;
+      const monthWord = String(currentMonth().name || "").split(" ")[0] || "Current";
 
       recurringPlannedTotal.textContent = currency(recurringPlanned);
       recurringPaidTotal.textContent = currency(recurringPaid);
+      stickyMonthLabel.textContent = `${monthWord} Unpaid`;
+      stickyMonthLabel.setAttribute("data-mobile-label", `${monthWord} Unpaid`);
       stickyPaid.textContent = currency(recurringUnpaid);
       stickyOneTimePaid.textContent = currency(oneTimePaid);
       stickyCount.textContent = `${paidCount}/${recurringCount} items paid`;
