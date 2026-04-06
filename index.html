@@ -1066,7 +1066,7 @@
       <div class="compact" id="stickyCount">0/0 items paid</div>
     </div>
     <div>
-      <small data-mobile-label="One-Time Paid">One-Time Amount Paid</small>
+      <small data-mobile-label="One-Time Unpaid">One-Time Unpaid</small>
       <div id="stickyOneTimePaid">$0.00</div>
     </div>
     <button id="stickyCloudSyncBtn" class="secondary" type="button">Cloud Sync</button>
@@ -1415,7 +1415,9 @@
       const recurringPlanned = recurringItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       const recurringPaid = recurringItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
       const recurringUnpaid = recurringPlanned - recurringPaid;
+      const oneTimePlanned = oneTimeItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       const oneTimePaid = oneTimeItems.reduce((sum, item) => sum + (item.paid ? Number(item.amount || 0) : 0), 0);
+      const oneTimeUnpaid = oneTimePlanned - oneTimePaid;
       const paidCount = recurringItems.filter((item) => item.paid).length;
       const recurringCount = recurringItems.length;
       const monthWord = String(currentMonth().name || "").split(" ")[0] || "Current";
@@ -1425,7 +1427,7 @@
       stickyMonthLabel.textContent = `${monthWord} Unpaid`;
       stickyMonthLabel.setAttribute("data-mobile-label", `${monthWord} Unpaid`);
       stickyPaid.textContent = currency(recurringUnpaid);
-      stickyOneTimePaid.textContent = currency(oneTimePaid);
+      stickyOneTimePaid.textContent = currency(oneTimeUnpaid);
       stickyCount.textContent = `${paidCount}/${recurringCount} items paid`;
     }
 
