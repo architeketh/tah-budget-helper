@@ -392,6 +392,38 @@
       min-width: 0;
     }
 
+    .name-with-handle {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .drag-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      min-width: 30px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(61, 74, 66, 0.14);
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--muted);
+      cursor: grab;
+      font-size: 0.95rem;
+      user-select: none;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .expense-row.drag-target {
+      outline: 2px dashed rgba(47, 124, 87, 0.45);
+      outline-offset: 2px;
+    }
+
     .expense-summary {
       display: none;
     }
@@ -690,6 +722,16 @@
         border-radius: 12px;
         padding: 6px 8px;
         background: linear-gradient(180deg, rgba(250, 227, 227, 0.96), rgba(255, 241, 241, 0.98));
+      }
+
+      .name-with-handle {
+        grid-template-columns: 1fr;
+      }
+
+      .drag-handle {
+        width: 100%;
+        height: 28px;
+        font-size: 0.82rem;
       }
 
       .expense-row.paid .expense-summary {
@@ -1115,6 +1157,7 @@
     let syncSettings = loadSyncSettings();
     let saveTimer = null;
     let syncReady = false;
+    let draggingRecurringId = null;
 
     const monthSelect = document.getElementById("monthSelect");
     const monthNameInput = document.getElementById("monthNameInput");
@@ -1297,7 +1340,10 @@
           <div class="expense-details">
             <div class="expense-field" data-mobile="name">
               <div class="mobile-label">Name</div>
-              <input type="text" value="${escapeAttribute(item.name)}" data-field="name" aria-label="Expense name">
+              <div class="name-with-handle">
+                ${type === "recurring" ? `<div class="drag-handle" draggable="true" data-action="drag" title="Drag to reorder">::</div>` : ""}
+                <input type="text" value="${escapeAttribute(item.name)}" data-field="name" aria-label="Expense name">
+              </div>
             </div>
             <div class="expense-field" data-mobile="amount">
               <div class="mobile-label">Amount</div>
@@ -1327,6 +1373,44 @@
             toggleButton.setAttribute("aria-expanded", expanded ? "true" : "false");
           });
         }
+
+        if (type === "recurring") {
+          const dragHandle = row.querySelector('[data-action="drag"]');
+          if (dragHandle) {
+            dragHandle.addEventListener("dragstart", (event) => {
+              draggingRecurringId = row.dataset.id;
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("text/plain", row.dataset.id);
+            });
+            dragHandle.addEventListener("dragend", () => {
+              draggingRecurringId = null;
+              recurringList.querySelectorAll(".expense-row").forEach((entry) => entry.classList.remove("drag-target"));
+            });
+          }
+
+          row.addEventListener("dragover", (event) => {
+            if (!draggingRecurringId || draggingRecurringId === row.dataset.id) {
+              return;
+            }
+            event.preventDefault();
+            row.classList.add("drag-target");
+          });
+
+          row.addEventListener("dragleave", () => {
+            row.classList.remove("drag-target");
+          });
+
+          row.addEventListener("drop", (event) => {
+            event.preventDefault();
+            row.classList.remove("drag-target");
+            const sourceId = draggingRecurringId || event.dataTransfer.getData("text/plain");
+            if (!sourceId || sourceId === row.dataset.id) {
+              return;
+            }
+            reorderRecurring(sourceId, row.dataset.id);
+          });
+        }
+
         row.querySelectorAll("input").forEach((input) => {
           const eventName = input.type === "checkbox" ? "change" : "input";
           input.addEventListener(eventName, () => updateExpense(row.dataset.type, row.dataset.id, input.dataset.field, input.type === "checkbox" ? input.checked : input.value));
@@ -1375,6 +1459,21 @@
 
     function removeExpense(type, id) {
       currentMonth()[type] = currentMonth()[type].filter((entry) => entry.id !== id);
+      persist();
+      render();
+    }
+
+    function reorderRecurring(sourceId, targetId) {
+      const items = currentMonth().recurring;
+      const fromIndex = items.findIndex((entry) => entry.id === sourceId);
+      const toIndex = items.findIndex((entry) => entry.id === targetId);
+      if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) {
+        return;
+      }
+
+      const [movedItem] = items.splice(fromIndex, 1);
+      items.splice(toIndex, 0, movedItem);
+      draggingRecurringId = null;
       persist();
       render();
     }
