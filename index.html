@@ -415,6 +415,10 @@
       user-select: none;
     }
 
+    .mobile-reorder {
+      display: none;
+    }
+
     .drag-handle:active {
       cursor: grabbing;
     }
@@ -729,9 +733,28 @@
       }
 
       .drag-handle {
-        width: 100%;
-        height: 28px;
-        font-size: 0.82rem;
+        display: none;
+      }
+
+      .mobile-reorder {
+        display: flex;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .mobile-reorder button {
+        width: auto;
+        min-width: 40px;
+        padding: 4px 8px;
+        border-radius: 9px;
+        font-size: 0.74rem;
+        background: rgba(255, 255, 255, 0.84);
+        color: var(--muted);
+        border: 1px solid rgba(61, 74, 66, 0.14);
+      }
+
+      .mobile-reorder button:hover {
+        background: rgba(255, 255, 255, 0.96);
       }
 
       .expense-row.paid .expense-summary {
@@ -1344,6 +1367,12 @@
                 ${type === "recurring" ? `<div class="drag-handle" draggable="true" data-action="drag" title="Drag to reorder">::</div>` : ""}
                 <input type="text" value="${escapeAttribute(item.name)}" data-field="name" aria-label="Expense name">
               </div>
+              ${type === "recurring" ? `
+                <div class="mobile-reorder">
+                  <button type="button" data-action="move-up" aria-label="Move expense up">Up</button>
+                  <button type="button" data-action="move-down" aria-label="Move expense down">Down</button>
+                </div>
+              ` : ""}
             </div>
             <div class="expense-field" data-mobile="amount">
               <div class="mobile-label">Amount</div>
@@ -1415,6 +1444,14 @@
           const eventName = input.type === "checkbox" ? "change" : "input";
           input.addEventListener(eventName, () => updateExpense(row.dataset.type, row.dataset.id, input.dataset.field, input.type === "checkbox" ? input.checked : input.value));
         });
+        const moveUpButton = row.querySelector('button[data-action="move-up"]');
+        const moveDownButton = row.querySelector('button[data-action="move-down"]');
+        if (moveUpButton) {
+          moveUpButton.addEventListener("click", () => nudgeRecurring(row.dataset.id, -1));
+        }
+        if (moveDownButton) {
+          moveDownButton.addEventListener("click", () => nudgeRecurring(row.dataset.id, 1));
+        }
         row.querySelector('button[data-action="delete"]').addEventListener("click", () => removeExpense(row.dataset.type, row.dataset.id));
       });
     }
@@ -1474,6 +1511,20 @@
       const [movedItem] = items.splice(fromIndex, 1);
       items.splice(toIndex, 0, movedItem);
       draggingRecurringId = null;
+      persist();
+      render();
+    }
+
+    function nudgeRecurring(id, direction) {
+      const items = currentMonth().recurring;
+      const index = items.findIndex((entry) => entry.id === id);
+      const targetIndex = index + direction;
+      if (index < 0 || targetIndex < 0 || targetIndex >= items.length) {
+        return;
+      }
+
+      const [movedItem] = items.splice(index, 1);
+      items.splice(targetIndex, 0, movedItem);
       persist();
       render();
     }
