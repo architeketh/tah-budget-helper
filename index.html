@@ -959,7 +959,7 @@
           <div class="eyebrow">Simple Cloud Budget App</div>
           <h1>TAH Budget Helper</h1>
           <p>Built as a single-file budget tracker that works well on desktop and mobile. You can add monthly expenses anytime, mark items paid, and keep a live running total at the bottom.</p>
-          <div class="version-tag">Mobile refresh v3</div>
+          <div class="version-tag">Mobile refresh v4</div>
           <div class="status-note" id="saveStatus"></div>
         </div>
         <div class="control-card">
@@ -1181,6 +1181,7 @@
     let saveTimer = null;
     let syncReady = false;
     let draggingRecurringId = null;
+    let autoSyncTimer = null;
 
     const monthSelect = document.getElementById("monthSelect");
     const monthNameInput = document.getElementById("monthNameInput");
@@ -1239,6 +1240,13 @@
     uploadInputMobile.addEventListener("change", restoreBackup);
     [budgetIdInput, syncCodeInput].forEach((element) => {
       element.addEventListener("change", persistSyncSettings);
+    });
+    window.addEventListener("focus", () => scheduleAutoSync("App active"));
+    window.addEventListener("online", () => scheduleAutoSync("Back online"));
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        scheduleAutoSync("App visible");
+      }
     });
 
     render();
@@ -1912,6 +1920,22 @@
       printWindow.document.close();
       printWindow.focus();
       setTimeout(() => printWindow.print(), 250);
+    }
+
+    function scheduleAutoSync(reason) {
+      if (!syncSettings.budgetId || !syncSettings.syncCode || !syncReady) {
+        return;
+      }
+      clearTimeout(autoSyncTimer);
+      autoSyncTimer = setTimeout(async () => {
+        if (document.hidden) {
+          return;
+        }
+        const loaded = await loadBudgetFromSupabase();
+        if (loaded) {
+          setSyncStatus(`Cloud sync refreshed (${reason.toLowerCase()}).`);
+        }
+      }, 350);
     }
 
     function renderPrintSection(title, items) {
