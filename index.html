@@ -959,7 +959,7 @@
           <div class="eyebrow">Simple Cloud Budget App</div>
           <h1>TAH Budget Helper</h1>
           <p>Built as a single-file budget tracker that works well on desktop and mobile. You can add monthly expenses anytime, mark items paid, and keep a live running total at the bottom.</p>
-          <div class="version-tag">Mobile refresh v4</div>
+          <div class="version-tag">Mobile refresh v5</div>
           <div class="status-note" id="saveStatus"></div>
         </div>
         <div class="control-card">
@@ -1182,6 +1182,7 @@
     let syncReady = false;
     let draggingRecurringId = null;
     let autoSyncTimer = null;
+    let urlBudgetId = getBudgetIdFromUrl();
 
     const monthSelect = document.getElementById("monthSelect");
     const monthNameInput = document.getElementById("monthNameInput");
@@ -1287,14 +1288,18 @@
         const saved = localStorage.getItem(SYNC_SETTINGS_KEY);
         if (!saved) {
           return {
-            budgetId: "tah-shared-budget",
+            budgetId: urlBudgetId || "tah-shared-budget",
             syncCode: ""
           };
         }
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (urlBudgetId) {
+          parsed.budgetId = urlBudgetId;
+        }
+        return parsed;
       } catch (error) {
         return {
-          budgetId: "tah-shared-budget",
+          budgetId: urlBudgetId || "tah-shared-budget",
           syncCode: ""
         };
       }
@@ -1302,15 +1307,16 @@
 
     function persistSyncSettings() {
       syncSettings = {
-        budgetId: budgetIdInput.value.trim() || "tah-shared-budget",
+        budgetId: budgetIdInput.value.trim() || urlBudgetId || "tah-shared-budget",
         syncCode: syncCodeInput.value.trim()
       };
+      updateBudgetIdInUrl(syncSettings.budgetId);
       localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify(syncSettings));
       syncReady = false;
       if (syncSettings.syncCode) {
         setSyncStatus("Settings saved. Click Cloud Sync to start cloud sync.");
       } else {
-        setSyncStatus("Enter a sync code, then connect sync.", true);
+        setSyncStatus(`Enter a sync code to reconnect to budget "${syncSettings.budgetId}".`, true);
       }
     }
 
@@ -1337,7 +1343,7 @@
       budgetIdInput.value = syncSettings.budgetId || "tah-shared-budget";
       syncCodeInput.value = syncSettings.syncCode || "";
       if (!syncSettings.syncCode) {
-        setSyncStatus("Enter a sync code, then connect sync.", true);
+        setSyncStatus(`Enter a sync code to reconnect to budget "${syncSettings.budgetId}".`, true);
       }
     }
 
@@ -1701,6 +1707,29 @@
 
     function cloneData(value) {
       return JSON.parse(JSON.stringify(value));
+    }
+
+    function getBudgetIdFromUrl() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        return params.get("budget") || "";
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function updateBudgetIdInUrl(budgetId) {
+      if (!budgetId) {
+        return;
+      }
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("budget", budgetId);
+        window.history.replaceState({}, "", url.toString());
+        urlBudgetId = budgetId;
+      } catch (error) {
+        urlBudgetId = budgetId;
+      }
     }
 
     function downloadBackup() {
